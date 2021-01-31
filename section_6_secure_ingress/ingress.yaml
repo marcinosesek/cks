@@ -5,8 +5,13 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
+  tls:
+  - hosts:
+      - secure-ingress.com
+    secretName: secure-ingress
   rules:
-  - http:
+  - host: secure-ingress.com
+    http:
       paths:
       - path: /service1
         pathType: Prefix
@@ -15,12 +20,10 @@ spec:
             name: service1
             port:
               number: 80
-  - http:
-        paths:
-        - path: /service2
-          pathType: Prefix
-          backend:
-            service:
-              name: service2
-              port:
-                number: 80
+      - path: /service2
+        pathType: Prefix
+        backend:
+          service:
+            name: service2
+            port:
+              number: 80

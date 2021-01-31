@@ -1,0 +1,17 @@
+---
+# Allow access to GCP metadata server from inside of pods with label role=metadata-accessor
+kind: NetworkPolicy
+metadata:
+  name: cloud-metadata-deny
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      role: metadata-accessor
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 169.254.169.254/32
+

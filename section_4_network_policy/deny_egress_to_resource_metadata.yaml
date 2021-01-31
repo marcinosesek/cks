@@ -1,0 +1,17 @@
+---
+# Blocks access to GCP metadata server from inside of pods
+kind: NetworkPolicy
+metadata:
+  name: cloud-metadata-deny
+  namespace: default
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 169.254.169.254/32
+
