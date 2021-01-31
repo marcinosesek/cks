@@ -15,7 +15,7 @@ NAME                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
 service/backend      ClusterIP   10.111.173.195   <none>        80/TCP    30s
 service/frontend     ClusterIP   10.105.56.31     <none>        80/TCP    36s
 service/kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP   55m
-kubectl exec frontend -- curl backend
+# kubectl exec frontend -- curl backend
 <!DOCTYPE html>
 <html>
 <head>

@@ -1,1 +1,1 @@
-CKS prepare environment
+Prepare to CKS exam
