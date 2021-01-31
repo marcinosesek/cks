@@ -1,0 +1,19 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: default
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  egress:
+  - to:
+    # Need to add these ports to allow DNS resolutions
+    ports:
+      - port: 53
+        protocol: TCP
+      - port: 53
+        protocol: UDP

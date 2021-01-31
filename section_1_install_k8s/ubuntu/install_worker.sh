@@ -27,7 +27,7 @@ deb http://apt.kubernetes.io/ kubernetes-xenial main
 EOF
 KUBE_VERSION=1.20.2
 apt-get update
-apt-get install -y docker.io kubelet=${KUBE_VERSION}-00 kubeadm=${KUBE_VERSION}-00 kubectl=${KUBE_VERSION}-00 kubernetes-cni=0.8.7-00
+apt-get install -y docker.io kubelet=${KUBE_VERSION}-00 kubeadm=${KUBE_VERSION}-00 kubectl=${KUBE_VERSION}-00
 
 cat > /etc/docker/daemon.json <<EOF
 {

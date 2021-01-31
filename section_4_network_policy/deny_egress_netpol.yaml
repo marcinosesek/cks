@@ -1,0 +1,13 @@
+---
+# It denies all outgoing traffic from pods with label id=frontend in
+# namespace default
+kind: NetworkPolicy
+metadata: example
+  name: example
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      id: frontend
+  policyTypes:
+  - Egress

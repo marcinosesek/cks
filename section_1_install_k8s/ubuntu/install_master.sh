@@ -27,7 +27,7 @@ deb http://apt.kubernetes.io/ kubernetes-xenial main
 EOF
 KUBE_VERSION=1.20.2
 apt-get update
-apt-get install -y docker.io kubelet=${KUBE_VERSION}-00 kubeadm=${KUBE_VERSION}-00 kubectl=${KUBE_VERSION}-00 kubernetes-cni=0.8.7-00
+apt-get install -y docker.io kubelet=${KUBE_VERSION}-00 kubeadm=${KUBE_VERSION}-00 kubectl=${KUBE_VERSION}-00
 
 cat > /etc/docker/daemon.json <<EOF
 {
@@ -54,7 +54,7 @@ systemctl enable kubelet && systemctl start kubelet
 ### init k8s
 rm /root/.kube/config
 kubeadm reset -f
-kubeadm init --kubernetes-version=${KUBE_VERSION} --apiserver-advertise-address `hostname -i` --ignore-preflight-errors=NumCPU --skip-token-print
+kubeadm init --kubernetes-version=${KUBE_VERSION} --apiserver-advertise-address `hostname -i` --pod-network-cidr 10.244.0.0/16
 
 mkdir -p ~/.kube
 sudo cp -i /etc/kubernetes/admin.conf ~/.kube/config

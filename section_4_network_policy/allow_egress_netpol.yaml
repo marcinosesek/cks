@@ -1,0 +1,25 @@
+---
+# Allow egress to namespace with label id=ns1 AND port 80
+# OR to pod with label id=backend
+kind: NetworkPolicy
+metadata: example
+  name: example
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      id: frontend
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          id: ns1
+    ports:
+    - protocol: TCP
+      port: 80
+  - to:
+    - podSelector:
+        matchLabels:
+          id: backend
