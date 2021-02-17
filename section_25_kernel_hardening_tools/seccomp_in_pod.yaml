@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secured-pod-seccomp
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+  securityContext:
+    seccompProfile:
+      type: Localhost
+      localhostProfile: default.json
