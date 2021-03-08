@@ -6,10 +6,13 @@
 1. We can Customize them and apply
 1. We can access CIS Kubebench home page and downlaod PDF file taht describes all rules
 1. To run kube-bench on cluster find it on github
+
     ```
     https://github.com/aquasecurity/kube-bench#running-inside-a-container
     ```
+
 1. To run it we can use docker container on master node
+
     ```
     # docker run --pid=host -v /etc:/etc:ro -v /var:/var:ro -t aquasec/kube-bench:latest master --version 1.20
     Unable to find image 'aquasec/kube-bench:latest' locally
@@ -206,7 +209,8 @@
     0 checks INFO
     ```
 
-# Resources
+1. Resources
+    
     https://www.youtube.com/watch?v=53-v3stlnCo
-
+    
     https://github.com/docker/docker-bench-security

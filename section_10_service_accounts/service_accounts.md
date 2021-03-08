@@ -10,6 +10,7 @@
     1. Create pod `accessor` and use service account `accessor`
     1. Enter to the pod
     1. Check that secret with token was mounted
+
         ```
         root@accessor:/# mount | grep service
         tmpfs on /run/secrets/kubernetes.io/serviceaccount type tmpfs (ro,relatime)
@@ -17,7 +18,9 @@
         ca.crt  namespace  token
         root@accessor:/# 
         ```
+    
     1. Try to access K8s service
+    
         ```
         root@accessor:/# curl -k https://kubernetes -k
         {
@@ -35,7 +38,9 @@
         "code": 403
         }
         ```
+    
     1.  Try to access K8s service using authorization header
+    
         ```
         curl -k https://kubernetes -k -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IkFqY2pxckYweGJGYjNGOHpqNVFtazNtNzlsTUJZLU56UGNEREExd3N0bmsifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImFjY2Vzc29yLXRva2VuLW5ibWtoIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFjY2Vzc29yIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiZTJjZjEzNmEtMmZlOS00MjJmLTliM2MtNDAyYTM5OGQ4YmMwIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmRlZmF1bHQ6YWNjZXNzb3IifQ.G8D9hw31Iey3fsXSmlv6521XiJ4FzGhCSakL3VT-P-TcZmqq_ZsRZvKPBvxxL90uSqQ7-T429qgouT7TjsTqRZTLEeYbkdKoyueb5nZvyWyfAIE-QdC6zmywRqxbE0m0PjqLp20sTLBNFmGy_R-iz-50fZHPWJ_mruuA7tDP8cu6056VJB7cEVfXODCd0HpEwtizExMHwYDxmLZPYYAUeyzn9e25oJDGOz1otu_9mk7npznhtMX5yDRzdtC8aBfEEbPhlxPN8BgP1x41ELPzOYHnnvDOf2Rm42uXPAeHHnE_pJ4QPE5s_TECO3fQOuvy2I625DZNQWnnt0vhYxGRUA"
         {
@@ -53,6 +58,7 @@
         "code": 403
         }
         ```
+    
     1. Still can't access K8s api but this time as accessor service 
     
 1. Disable the mount of ServiceAccount token in pod
@@ -73,5 +79,6 @@
         yes
         ```
 1. Resources
+
     https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin
     https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account

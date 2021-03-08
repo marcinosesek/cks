@@ -1,4 +1,5 @@
 # Authentication, Autorization, Addmission
+
 1. Authentication
     1. K8s API server ask: "Who are you?"
 1. Authorization
@@ -76,20 +77,25 @@
     ```
 
 # HTTP/HTTPS access
+
 1. Insecure access:
     1. Request bypasses authentication and authorization modules
     1. Admission controller still enforces
     1. To enable it
+
         ```
         kube-apiserver --insecure-port=8080
         ```
+    
     1. To access K8s api server in insecure way:
+    
         ```
         curl http://localhost:8080
         ```
 
 # Send manual API requests
 1. Check kube config details:
+    
     ```
     kubectl config view --raw
     apiVersion: v1
@@ -122,6 +128,7 @@
     ```
 1. Save to files ca, client cert and client key
 1. Access K8s API server
+
     ```
     curl https://192.168.56.2:6443 --cacert ca
     ```
@@ -137,9 +144,11 @@
         "/apis/admissionregistration.k8s.io",
         ...
     ```
+
 1. Make K8s API server reachable from the outside
-    1. Edit K8s svc and change it to NodePort
+    1. Edit K8s svc and change it to `NodePort`
     1. Access K8s API server from outside
+
         ```
         curl https://192.168.56.2:31168 -k
         {
@@ -148,7 +157,7 @@
         "metadata": {
             
         },
-        "status": "Failure",
+        "status": "Failure",vi /etc/kube
         "message": "forbidden: User \"system:anonymous\" cannot get path \"/\"",
         "reason": "Forbidden",
         "details": {
@@ -157,12 +166,14 @@
         "code": 403
         }
         ```
+
 1. NodeRestriction
     1. It's Addmission Controller and can be enabled in K8s API server: `enable-admission-plugins=NodeRestriction`
     1. It limits the node labels a kubelet can modify
     1. It ensure secure workload isolation via labels
     1. Log in to worker node
     1. Check if we can access K8s api server
+        
         ```
         root@kubenode01:~# export KUBECONFIG=/etc/kubernetes/kubelet.conf 
         root@kubenode01:~# 
@@ -174,6 +185,7 @@
         kubemaster   Ready    control-plane,master   6d23h   v1.20.2
         kubenode01   Ready    <none>                 6d23h   v1.20.2
         ```
+
     1. From worker node we can't change labels of other nodes. We can only changed labels of it's own node except labels that starts with: `node-restriction.kubernetes.io`
         ```    
         # kubectl  label node kubemaster  cks/test=yes
@@ -186,4 +198,5 @@
         ```
 
 1. Resources
-    1. https://kubernetes.io/docs/concepts/security/controlling-access
+    
+    https://kubernetes.io/docs/concepts/security/controlling-access

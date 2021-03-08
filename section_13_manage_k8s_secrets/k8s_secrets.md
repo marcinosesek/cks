@@ -6,11 +6,14 @@
 
 1. Access to secrets from etcd
     1. Check access to ETCD
+
         ```
         ETCDCTL_API=3 etcdctl --cert /etc/kubernetes/pki/apiserver-etcd-client.crt --key /etc/kubernetes/pki/apiserver-etcd-client.key --cacert /etc/kubernetes/pki/etcd/ca.crt endpoint health
         127.0.0.1:2379 is healthy: successfully committed proposal: took = 879.207µs
         ```
+    
     1. Get secrets from ETCD
+    
         ```
         ETCDCTL_API=3 etcdctl --cert /etc/kubernetes/pki/apiserver-etcd-client.crt --key /etc/kubernetes/pki/apiserver-etcd-client.key --cacert /etc/kubernetes/pki/etcd/ca.crt get /registry/secrets/default/secret2
         /registry/secrets/default/secret2
@@ -78,7 +81,7 @@
 
             ```
         1. Mount `EncryptionConfiguration` in K8s api server
-        1. New secrets should be encrypted in etcd. Old passwords wan;t be encrypted
+        1. New secrets should be encrypted in etcd. Old passwords wan't be encrypted
         1. When we read secret via API it's not encrypted
         1. Without `- identity: {}` K8s api server can't get secrets
         1. To recreate all secrets and encrypt them:
