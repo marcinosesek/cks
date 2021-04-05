@@ -1,6 +1,7 @@
 # PodSecurityPolicy - AdmissionController
 
 1. It's not enabled by default. To enable it need to modify kube-apiserver manifest
+
     ```
     ...
     containers:
@@ -8,18 +9,22 @@
           - kube-apiserver
           - --enable-admission-plugin=PodSecurityPolicy
     ```
+
 1. We can create pod using `kubectl run nginx --image=nginx` because we have admin rights. 
 
 1. We can't create new deployment because default service account does not know that it should use psp.
 
 1. Give default service account access to psp
+
     ```
     kubectl create role psp-access --verb=use --resource=podsecuritypolicies
     role.rbac.authorization.k8s.io/psp-access created
     root@kubemaster:/home/vagrant/cks/section_15_os_level_security_domains# kubectl  create  rolebinding psp-access --role=psp-access --serviceaccount=default:default
     rolebinding.rbac.authorization.k8s.io/psp-access created
     ```
+
 1. Create deployment
+
     ```
     kubectl create deployment nginx --image=nginx
     deployment.apps/nginx created
@@ -58,6 +63,7 @@
     ```
 
 1. Create pod with allowedPrivilegeEscalation enabled 
+
     ```
     kubectl apply -f pod-psp.yaml 
     Error from server (Forbidden): error when creating "pod-psp.yaml": pods "pod-sc" is forbidden: PodSecurityPolicy: unable to admit pod: [spec.containers[0].securityContext.allowPrivilegeEscalation: Invalid value: true: Allowing privilege escalation for containers is not allowed]

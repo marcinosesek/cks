@@ -3,7 +3,7 @@
 1. K8s API server generetes audit logs where we can find history of API requests
 1. Audit Policy Stages
     * RequestReceived - Stage for events generates as soon as the audit handler received the request, and before it's delegated down the hancler chain
-    * ResponseStarted - Once the response headers are sen, but before the respons body is send. This stage is only genereted for long-running requests (eg. watch)
+    * ResponseStarted - Once the response headers are seen, but before the respons body is send. This stage is only genereted for long-running requests (eg. watch)
     * ResponseComplete - The response body has been completed and no more bytes will be send
     * Panic - Events genereted when a panic occurred
 1. Many API Requests and much data will be genereted

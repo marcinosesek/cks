@@ -43,6 +43,7 @@
         ```
     1. Privileged means that container user 0 (root) is directly mapped to host user 0 (root)
     1. Create pod with privileged mode
+
         ```
         kubectl  apply -f pod-sc-privileged.yaml
 
@@ -59,9 +60,11 @@
 1. PrivilegeEscalation
     1. Controls whether a process can gain more privileges than its parent process - it's enabled by default
     1. Create pod with `allowPrivilegesEscalation` set to true
+
         ```
         kubectl apply -f pod-sc-privileged-escalation.yaml 
         ```
+
         ```
         kubectl exec -it pod-sc sh
         kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
@@ -71,9 +74,11 @@
         ```
 
     1. Create pod with `allowPrivilegesEscalation` set to true
+
         ```
         kubectl apply -f pod-sc-privileged-escalation-disabled.yaml 
         ```
+
         ```
         kubectl exec -it pod-sc sh
         kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.

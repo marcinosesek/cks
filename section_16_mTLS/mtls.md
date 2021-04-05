@@ -25,4 +25,4 @@
 1. Create sidecar container
     ```
     kubectl run app --image=bash --command -o yaml --dry-run=client  > app.yaml -- sh -c 'ping google.com'
-    ```
+    ```     

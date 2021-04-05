@@ -3,19 +3,19 @@
 1. Just because it runs in a container does't mean it's mode protected
 1. Overview
     ```
-    |---------------|
-    | DOCKER        |
-    | APP1 PROCESS  |
-    | KERNEL GROUP  |
-    |---------------|
-          KERNEL
-     OPERATING SYSTEM
+    |------------------|
+    | DOCKER           |
+    | APP1 PROCESS     |
+    | KERNEL GROUP     |
+    |------------------|
+    |      KERNEL      |
+    | OPERATING SYSTEM |
     ```
-    1. Proces running in one container can send syscals and break some different docker process because they are runing in the same KERNEL
+    1. Proces running in one container can send syscalls and break some different docker process because they are runing in the same KERNEL
 
 1. Sandbox
     1. Playground when implementing an API
-    1. imulated testing environment
+    1. Imulated testing environment
     1. Development server
     1. Security layer to reduce attack surface
 
@@ -52,7 +52,7 @@
     1. Specifiation
         * runtime, image, distribution
     1. Runtime
-        * `runc` (container runtime tuat imtpelents specificaiton)
+        * `runc` (container runtime tTat implements specificaiton)
 
     1. Dockers does not create containers. They run `OCI/runc` to create containers
 
@@ -79,7 +79,9 @@
         800904a39357b       43154ddb57a83                                                                                          9 days ago          Running             kube-proxy                  0                   f613456b2a02c
         f38c83cc81811       0369cf4303ffd                                                                                          9 days ago          Running             etcd                        0                   5ae430b3a1dd0
         ```
+
     1. It communicate with docker. We can configure it to run with `containerd`
+
         ```
         root@kubemaster:~# crictl pods
         POD ID              CREATED             STATE               NAME                                         NAMESPACE              ATTEMPT
@@ -94,6 +96,7 @@
         6c0ff1d6be78b       9 days ago          Ready               kube-controller-manager-kubemaster           kube-system            0
         root@kubemaster:~# 
         ```
+
 1. Sandbox Runtime Katacontainers
     1. It provides additional isolation with a lightweight VM and indiviual kernels
     1. Strong separation layer
@@ -108,23 +111,24 @@
     1. Simulates kernel syscalls with limited funtionality
     1. Runtime caller `runsc`
     ```
-    |----------------|
-    | APP PROCESS    |
-    |----------------|
-    | System Calls   |
-    |----------------|
-    |     gVisor     |
-    |----------------|
-    |Limited System  |
-    |     Calls      |
-    |--------------- |
-    |  HOST KERNEL   |
-    |----------------|
-    |OPERATING SYSTEM|
+    |------------------|
+    |  APP PROCESS     |
+    |------------------|
+    |  System Calls    |
+    |------------------|
+    |      gVisor      |
+    |------------------|
+    |  Limited System  |
+    |      Calls       |
+    |------------------|
+    |   HOST KERNEL    |
+    |------------------|
+    | OPERATING SYSTEM |
     ```
 
 1. RuntimeClasses
     1. Create and use RuntimeClasses
+
         ```
         apiVersion: node.k8s.io/v1
         kind: RuntimeClass
@@ -132,12 +136,14 @@
         name: gvisor
         handler: runsc  
         ```
+    
         ```
         kubectl  apply -f rc.yaml 
         runtimeclass.node.k8s.io/gvisor created
         ```
     
     1. Create pod that uses `gvisor` runtime class
+
         ```
         apiVersion: v1
         kind: Pod
@@ -156,6 +162,7 @@
         restartPolicy: Always
         status: {}
         ```
+
         ```
         root@kubemaster:/home/vagrant/cks/section_14_container_runtime_sandboxes# kubectl  describe po gvisor 
         Name:         gvisor
@@ -203,9 +210,11 @@
         Normal   Scheduled               15s               default-scheduler  Successfully assigned default/gvisor to kubenode01
         Warning  FailedCreatePodSandBox  0s (x2 over 15s)  kubelet            Failed to create pod sandbox: rpc error: code = Unknown desc = RuntimeHandler "runsc" not supported
         ```
+
     1. Pod can't be created because `runsc` was not installed and gvisor does not exists
 
 # Resources
+
 1. Container Runtime Landscape
     https://www.youtube.com/watch?v=RyXL1zOa8Bw
 
