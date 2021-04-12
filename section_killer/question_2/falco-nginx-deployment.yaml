@@ -1,0 +1,27 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: falco-nginx
+  name: falco-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: falco-nginx
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: falco-nginx
+    spec:
+      containers:
+      - image: nginx:alpine
+        name: falco-nginx
+        command: ['/bin/sh']
+        args: ['-c', 'while true; do apk search vim; sleep 10; done']
+        resources: {}
+

@@ -67,7 +67,7 @@ Vagrant.configure("2") do |config|
         node.vm.network "forwarded_port", guest: 22, host: "#{2710 + i}"
         node.vm.synced_folder "../", "/home/vagrant/cks"
         node.vm.provision "setup-hosts", :type => "shell", :path => "ubuntu/vagrant/setup-hosts.sh" do |s|
-          s.args = ["en0"]
+          s.args = ["enp0s8"]
         end
 
         node.vm.provision "setup-dns", type: "shell", :path => "ubuntu/update-dns.sh"
@@ -89,7 +89,7 @@ Vagrant.configure("2") do |config|
                 node.vm.network "forwarded_port", guest: 22, host: "#{2720 + i}"
         node.vm.synced_folder "../", "/home/vagrant/cks"
         node.vm.provision "setup-hosts", :type => "shell", :path => "ubuntu/vagrant/setup-hosts.sh" do |s|
-          s.args = ["en0"]
+          s.args = ["enp0s8"]
         end
 
         node.vm.provision "setup-dns", type: "shell", :path => "ubuntu/update-dns.sh"

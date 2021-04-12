@@ -1,0 +1,9 @@
+
+spec:
+  type: NodePort
+  ports:
+  - targetPort: 9090
+    port: 443
+    protocol: TCP
+
+

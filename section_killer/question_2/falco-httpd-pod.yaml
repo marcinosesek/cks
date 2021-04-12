@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: falco-httpd
+  name: falco-httpd
+spec:
+  containers:
+  - command: ['/bin/sh']
+    args: ['-c', 'echo hello > /etc/passwd; sleep inf']
+    image: httpd:alpine
+    name: falco-nginx
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+

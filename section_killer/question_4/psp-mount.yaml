@@ -1,0 +1,22 @@
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: psp-mount
+spec:
+  privileged: true
+  allowedHostPaths:
+  - pathPrefix: "/tmp"
+    readOnly: false # only allow read-only mounts
+  allowPrivilegeEscalation: false
+  privileged: false  # Don't allow privileged pods!
+  # The rest fills in some required fields.
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  runAsUser:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+  volumes:
+  - '*'

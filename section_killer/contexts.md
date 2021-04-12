@@ -2,30 +2,90 @@
 
 1. Contexts
 
-    You have access to multiple clusters from your main terminal through kubectl contexts. Write all context names into /opt/course/1/contexts, one per line. From the kubeconfig extract the certificate of user restricted@infra-prod and write it decoded to /opt/course/1/cert.
+    You have access to multiple clusters from your main terminal through kubectl contexts. 
+    1. Write all context names into /opt/course/1/contexts, one per line.
+        ```
+        kubectl config view -o jsonpath='{range .contexts[*]}{@.name}{"\n"}{end}' > /opt/course/1/contexts
+        ```
+    1. From the kubeconfig extract the certificate of user restricted@infra-prod and write it decoded to /opt/course/1/cert.
+        ```
+        kubectl config view -o jsonpath='{.users[?(@.name=="user-2")].user.client-certificate-data}' --raw  | base64 -d > /opt/course/1/cert
+        ```
 
 1. Runtime Security with Falco
 
-    Falco is installed with default configuration on node cluster1-worker1. Connect using ssh cluster1-worker1. Use it to:
-    
-    Find a Pod running image nginx which creates unwanted package management processes inside its container.
-    Find a Pod running image httpd which modifies /etc/passwd.
-    Save the Falco logs for case 1 under /opt/course/2/falco.log in format time,container-id,container-name,user-name. No other information should be in any line. Collect the logs for at least 30 seconds.
+    Falco is installed with default configuration on node kubenode01. Connect using ssh kubenode01. Use it to:
+    1. Find a Pod running image nginx which creates unwanted package management processes inside its container.
+        ```
+        tail -f /var/log/syslog | grep "Package management"
+        19:42:37.441497705: Error Package management process launched in container (user=root user_loginuid=-1 command=apk search vim container_id=3655e1f39593 container_name=k8s_falco-nginx_falco-nginx-67789b7664-dwcqs_falco-ns_08e67a1e-5318-4c15-b5c0-08b50c50312b_0 image=nginx:alpine)
 
-    Afterwards remove the threads (both 1 and 2) by scaling the replicas of the Deployments that control the offending Pods down to 0.
+        kubectl get po -A | grep falco-nginx-67789b7664-dwcqs
+        falco-ns      falco-nginx-67789b7664-dwcqs         1/1     Running   0          10m
+
+        ```
+    1. Find a Pod running image httpd which modifies /etc/passwd.
+        ```
+        tail -f /var/log/syslog | grep "/etc/passd"
+        ...
+        19:38:56.573799862: Error File below /etc opened for writing (user=root user_loginuid=-1 command=sh -c while true; do echo hello > /etc/passwd; sleep 10; done parent=containerd-shim pcmdline=containerd-shim -namespace moby -workdir /var/lib/containerd/io.containerd.runtime.v1.linux/moby/e5c10be9b915602b5b79345b5b539d88fb8635df7c64786deed45dda5cea5803 -address /run/containerd/containerd.sock -containerd-binary /usr/bin/containerd -runtime-root /var/run/docker/runtime-runc -systemd-cgroup file=/etc/passwd program=sh gparent=containerd ggparent=systemd gggparent=<NA> container_id=e5c10be9b915 image=httpd)
+
+        docker ps -a | grep e5c10be9b915
+        e5c10be9b915        fa848876521a            "/bin/sh -c 'while t…"   5 minutes ago       Up 5 minutes                                  k8s_falco-httpd_falco-httpd-7848d8b9f7-p6llc_falco-ns_6dd54304-11d8-4e7b-8713-1a571fa56b79_0
+
+        kubectl get po -A | grep falco-httpd_falco-httpd-7848d8b9f7-p6llc
+        falco-ns      falco-httpd-7848d8b9f7-p6llc         1/1     Running   0          6m14s
+        ```
+    1. Save the Falco logs for case 1 under /opt/course/2/falco.log in format time,container-id,container-name,user-name. No other information should be in any line. Collect the logs for at least 30 seconds.
+        ```
+        Update /etc/falco/falco_rules.local.yaml
+        ...
+        - rule: Launch Package Management Process in Container
+        desc: Package management process ran inside container
+        condition: >
+            spawned_process
+            and container
+            and user.name != "_apt"
+            and package_mgmt_procs
+            and not package_mgmt_ancestor_procs
+            and not user_known_package_manager_in_container
+        output: >
+            %evt.time %container.id %container.name %user.name
+        priority: ERROR
+        tags: [process, mitre_persistence]
+
+        systemctl stop falco
+        falco | grep nginx > opt/course/2/falco.log
+        Wed Apr  7 19:47:25 2021: Falco version 0.27.0 (driver version 5c0b863ddade7a45568c0ac97d037422c9efb750)
+        Wed Apr  7 19:47:25 2021: Falco initialized with configuration file /etc/falco/falco.yaml
+        Wed Apr  7 19:47:25 2021: Loading rules from file /etc/falco/falco_rules.yaml:
+        Wed Apr  7 19:47:25 2021: Loading rules from file /etc/falco/falco_rules.local.yaml:
+        Wed Apr  7 19:47:25 2021: Loading rules from file /etc/falco/k8s_audit_rules.yaml:
+        Wed Apr  7 19:47:25 2021: Starting internal webserver, listening on port 8765
+        19:47:28.269518982: Error 19:47:28.269518982 3655e1f39593 k8s_falco-nginx_falco-nginx-67789b7664-dwcqs_falco-ns_08e67a1e-5318-4c15-b5c0-08b50c50312b_0 root
+        19:47:38.287283431: Error 19:47:38.287283431 3655e1f39593 k8s_falco-nginx_falco-nginx-67789b7664-dwcqs_falco-ns_08e67a1e-5318-4c15-b5c0-08b50c50312b_0 root
+        ```
+
+    1. Afterwards remove the threads (both 1 and 2) by scaling the replicas of the Deployments that control the offending Pods down to 0.
+        ```
+        kubectl scale deploy -n falco-ns falco-httpd --replicas=0
+        deployment.apps/falco-httpd scaled
+        kubectl scale deploy -n falco-ns falco-nginx --replicas=0
+        deployment.apps/falco-nginx scaled
+        ```
 
 1. Apiserver Security
     
     You received a list from the DevSecOps team which performed a security investigation of the k8s cluster1 (workload-prod). The list states the following about the apiserver setup:
 
-    Anonymous access is allowed
-    It's accessible on insecure port 8080
-    it's accessible through a NodePort Service
+    1. Anonymous access is allowed
+    1. It's accessible on insecure port 8080
+    1. It's accessible through a NodePort Service
+    
     Change the apiserver setup so that:
-
-    No anonymous access is allowed
-    It's only accessible over HTTPS (disable insecure access)
-    It's only accessible through a ClusterIP Service
+    1. No anonymous access is allowed
+    1. It's only accessible over HTTPS (disable insecure access)
+    1. It's only accessible through a ClusterIP Service
 
 1. Pod Security Policies
     
@@ -33,13 +93,20 @@
 
     You're asked to forbid this behavior by:
 
-    Enabling Admission Plugin PodSecurityPolicy in the apiserver
-    Creating a PodSecurityPolicy named psp-mount which allows hostPath volumes only for directory /tmp
-    Creating a ClusterRole named psp-mount which allows to use the new PSP
-    Creating a RoleBinding named psp-mount in Namespace team-red which binds the new ClusterRole to all ServiceAccounts in the Namespace team-red
-    Restart the Pod of Deployment docker-log-hacker afterwards to verify new creation is prevented.
+    1. Enabling Admission Plugin PodSecurityPolicy in the apiserver
+        ```
+        vi /etc/kubernetes/manifests/kube-apiserver.yaml
+        ...
+        - --enable-admission-plugins=NodeRestriction,PodSecurityPolicy
 
-    PSPs can affect the whole cluster. Should you encounter issues you can always disable the Admission Plugin again.
+        ```
+    1. Creating a PodSecurityPolicy named psp-mount which allows hostPath volumes only for directory /tmp - `psp-mount.yaml`
+       
+    1. Creating a ClusterRole named psp-mount which allows to use the new PSP - `psp-mount-cluster-role.yaml`
+    1. Creating a RoleBinding named psp-mount in Namespace team-red which binds the new ClusterRole to all ServiceAccounts in the Namespace team-red - `psp-mount-role-binding-team-read.yaml`
+    1. Restart the Pod of Deployment docker-log-hacker afterwards to verify new creation is prevented.
+
+    1. PSPs can affect the whole cluster. Should you encounter issues you can always disable the Admission Plugin again.
 
 1. CIS Benchmark
 
@@ -49,50 +116,77 @@
 
     On the master node ensure (correct if necessary) that the CIS recommendations are set for:
 
-    The --profiling argument of the kube-controller-manager
-    The ownership of directory /var/lib/etcd
-    On the worker node ensure (correct if necessary) that the CIS recommendations are set for:
+    1. The --profiling argument of the kube-controller-manager
+        ```
+        kube-bench master
 
-    The permissions of the kubelet configuration /var/lib/kubelet/config.yaml
-    The --client-ca-file argument of the kubelet
+        vi /etc/kubernetes/manifests/kube-controller-manager.yaml
+        add 
+        - --profiling=false
+        ```
+    1. The ownership of directory /var/lib/etcd
+        ```
+        useradd etcd
+        chown etcd:etcd /var/lib/etcd
+        ```
+
+    On the worker node ensure (correct if necessary) that the CIS recommendations are set for:
+    1. The permissions of the kubelet configuration /var/lib/kubelet/config.yaml
+        ```
+        ls -ltra /var/lib/kubelet/config.yaml
+        ```
+    1. The --client-ca-file argument of the kubelet
+        ```
+        vi /var/lib/kubelet/config.yaml
+        ...
+          x509:
+            clientCAFile: /etc/kubernetes/pki/ca.crt
+        ```
 
 1. Verify Platform Binaries
 
     There are four Kubernetes server binaries located at /opt/course/6/binaries. You're provided with the following verified sha512 values for these:
 
-    kube-apiserver f417c0555bc0167355589dd1afe23be9bf909bf98312b1025f12015d1b58a1c62c9908c0067a7764fa35efdac7016a9efa8711a44425dd6692906a7c283f032c
-
-    kube-controller-manager 60100cc725e91fe1a949e1b2d0474237844b5862556e25c2c655a33boa8225855ec5ee22fa4927e6c46a60d43a7c4403a27268f96fbb726307d1608b44f38a60
-
-    kube-proxy 52f9d8ad045f8eee1d689619ef8ceef2d86d50c75a6a332653240d7ba5b2a114aca056d9e513984ade24358c9662714973c1960c62a5cb37dd375631c8a614c6
-
-    kubelet 4be40f2440619e990897cf956c32800dc96c2c983bf64519854a3309fa5aa21827991559f9c44595098e27e6f2ee4d64a3fdec6baba8a177881f20e3ec61e26c
+    1. kube-apiserver f417c0555bc0167355589dd1afe23be9bf909bf98312b1025f12015d1b58a1c62c9908c0067a7764fa35efdac7016a9efa8711a44425dd6692906a7c283f032c
+    1. kube-controller-manager 60100cc725e91fe1a949e1b2d0474237844b5862556e25c2c655a33boa8225855ec5ee22fa4927e6c46a60d43a7c4403a27268f96fbb726307d1608b44f38a60
+    1. kube-proxy 52f9d8ad045f8eee1d689619ef8ceef2d86d50c75a6a332653240d7ba5b2a114aca056d9e513984ade24358c9662714973c1960c62a5cb37dd375631c8a614c6
+    1. kubelet 4be40f2440619e990897cf956c32800dc96c2c983bf64519854a3309fa5aa21827991559f9c44595098e27e6f2ee4d64a3fdec6baba8a177881f20e3ec61e26c
+        ```
+        sha512sum <binary-name>
+        ```
 
     Delete those binaries that don't match with the sha512 values above.
 
 1. Open Policy Agent
 
     The Open Policy Agent and Gatekeeper have been installed to, among other things, enforce blacklisting of certain image registries. Alter the existing constraint and/or template to also blacklist images from very-bad-registry.com.
-
+    
     Test it by creating a single Pod using image very-bad-registry.com/image in Namespace default, it shouldn't work.
 
     You can also verify your changes by looking at the existing Deployment untrusted in Namespace default, it uses an image from the new untrusted source. The OPA contraint should throw violation messages for this one.
+    ```
+    Edit `blacklistimages` constraint template and add this line: `not startswith(image, "very-bad-registry.com/")`
+    
+    kubectl edit constrainttemplate blacklistimages
+    kubectl run po very-bad-registr-pod --image=very-bad-registry.com/image
+    Error from server ([denied by pod-trusted-images] not trusted image!): admission webhook "validation.gatekeeper.sh" denied the request: [denied by pod-trusted-images] not trusted image! 
+    ```
 
 1. Secure Kubernetes Dashboard
 
     The Kubernetes Dashboard is installed in Namespace kubernetes-dashboard and is configured to:
 
-    Allow users to "skip login"
-    Allow insecure access (HTTP without authentication)
-    Allow basic authentication
-    Allow access from outside the cluster
+    1. Allow users to "skip login"
+    1. Allow insecure access (HTTP without authentication)
+    1. Allow basic authentication
+    1. Allow access from outside the cluster
+    
     You are asked to make it more secure by:
-
-    Deny users to "skip login"
-    Deny insecure access, enforce HTTPS (self signed certificates are ok for now)
-    Add the --auto-generate-certificates argument
-    Enforce authentication using a token (with possibility to use RBAC)
-    Allow only cluster internal access
+    1. Deny users to "skip login"
+    1. Deny insecure access, enforce HTTPS (self signed certificates are ok for now)
+    1. Add the --auto-generate-certificates argument
+    1. Enforce authentication using a token (with possibility to use RBAC)
+    1. Allow only cluster internal access
 
 1. AppArmor Profile
     
